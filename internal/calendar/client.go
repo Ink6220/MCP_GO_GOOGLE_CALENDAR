@@ -29,14 +29,27 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		ClientSecret: cfg.OAuth.ClientSecret,
 		RedirectURL:  cfg.OAuth.RedirectURL,
 		Scopes: []string{
-			// Required scope
+			// Required scopes
 			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
 			
-			// Calendar scopes
+			// Calendar scopes - Non-sensitive
+			"https://www.googleapis.com/auth/calendar.freebusy",
+			"https://www.googleapis.com/auth/calendar.app.created",
+			"https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+			"https://www.googleapis.com/auth/calendar.events.freebusy",
+			
+			// Calendar scopes - Sensitive
 			calendar.CalendarScope,
 			calendar.CalendarEventsScope,
 			calendar.CalendarReadonlyScope,
 			calendar.CalendarEventsReadonlyScope,
+			"https://www.googleapis.com/auth/calendar.acls",
+			"https://www.googleapis.com/auth/calendar.acls.readonly",
+			"https://www.googleapis.com/auth/calendar.calendarlist",
+			"https://www.googleapis.com/auth/calendar.calendars",
+			"https://www.googleapis.com/auth/calendar.calendars.readonly",
+			"https://www.googleapis.com/auth/calendar.events.owned",
 		},
 		Endpoint: google.Endpoint,
 	}

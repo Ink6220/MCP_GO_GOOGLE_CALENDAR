@@ -27,7 +27,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to get home directory: %w", err)
 	}
 	
-	configDir := filepath.Join(homeDir, ".gmail-mcp")
+	configDir := filepath.Join(homeDir, ".calendar-mcp")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
@@ -36,10 +36,10 @@ func Load() (*Config, error) {
 	cfg.OAuthPath = filepath.Join(configDir, "gcp-oauth.keys.json")
 	
 	// Override with environment variables if set
-	if path := os.Getenv("GMAIL_CREDENTIALS_PATH"); path != "" {
+	if path := os.Getenv("CALENDAR_CREDENTIALS_PATH"); path != "" {
 		cfg.CredentialsPath = path
 	}
-	if path := os.Getenv("GMAIL_OAUTH_PATH"); path != "" {
+	if path := os.Getenv("CALENDAR_OAUTH_PATH"); path != "" {
 		cfg.OAuthPath = path
 	}
 	

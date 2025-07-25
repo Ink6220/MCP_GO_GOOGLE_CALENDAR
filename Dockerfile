@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o gmail-mcp-server main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o calendar-mcp-server main.go
 
 # Final stage
 FROM alpine:latest
@@ -27,7 +27,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the binary from builder stage
-COPY --from=builder /app/gmail-mcp-server .
+COPY --from=builder /app/calendar-mcp-server .
 
 # Create directory for configuration
 RUN mkdir -p /root/.gmail-mcp
@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Command to run
-CMD ["./gmail-mcp-server"]
+CMD ["./calendar-mcp-server"]

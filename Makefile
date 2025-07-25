@@ -1,6 +1,6 @@
 # Google Calendar MCP Server Makefile
 
-.PHONY: build run test clean auth docker-build docker-run help
+.PHONY: build run test clean auth docker-build docker-run help check-env create-env setup-full
 
 # Variables
 BINARY_NAME=calendar-mcp-server
@@ -9,6 +9,12 @@ DOCKER_IMAGE=calendar-mcp-server
 DOCKER_TAG=latest
 REGISTRY=mcp.robotrad.io
 REGISTRY_IMAGE=$(REGISTRY)/$(DOCKER_IMAGE)
+
+# Default configuration
+DEFAULT_PORT=8081
+HTTP_PORT?=$(DEFAULT_PORT)
+CALENDAR_OAUTH_PATH?=./gcp-oauth.keys.json
+CALENDAR_CREDENTIALS_PATH?=~/.calendar-mcp/credentials.json
 
 # Default target
 help: ## Show this help message
@@ -40,16 +46,16 @@ build-all: build-linux build-darwin build-windows ## Build for all platforms
 
 # Run targets
 run: build ## Build and run the server
-	@echo "Starting Google Calendar MCP Server..."
-	@./$(BINARY_NAME)
+	@echo "Starting Google Calendar MCP Server on port $(HTTP_PORT)..."
+	@./$(BINARY_NAME) -port $(HTTP_PORT)
 
 run-debug: build ## Build and run with debug logging
-	@echo "Starting Google Calendar MCP Server with debug logging..."
-	@./$(BINARY_NAME) -debug
+	@echo "Starting Google Calendar MCP Server with debug logging on port $(HTTP_PORT)..."
+	@./$(BINARY_NAME) -port $(HTTP_PORT) -debug
 
 run-dev: ## Run without building (development)
-	@echo "Running in development mode..."
-	@go run $(MAIN_FILE) -debug
+	@echo "Running in development mode on port $(HTTP_PORT)..."
+	@go run $(MAIN_FILE) -port $(HTTP_PORT) -debug
 
 auth: build ## Run OAuth authentication flow
 	@echo "Starting OAuth authentication..."
@@ -81,8 +87,8 @@ docker-build: ## Build Docker image
 	@echo "Docker image built: $(DOCKER_IMAGE):$(DOCKER_TAG)"
 
 docker-run: docker-build ## Build and run Docker container
-	@echo "Running Docker container..."
-	@docker run -p 8080:8080 -v $(PWD)/gcp-oauth.keys.json:/root/.calendar-mcp/gcp-oauth.keys.json:ro $(DOCKER_IMAGE):$(DOCKER_TAG)
+	@echo "Running Docker container on port $(HTTP_PORT)..."
+	@docker run -p $(HTTP_PORT):$(HTTP_PORT) -v $(PWD)/gcp-oauth.keys.json:/root/.calendar-mcp/gcp-oauth.keys.json:ro $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 docker-compose-up: ## Start with docker-compose
 	@echo "Starting services with docker-compose..."
@@ -143,21 +149,54 @@ setup-oauth: ## Instructions for setting up OAuth credentials
 	@echo ""
 
 check-oauth: ## Check if OAuth credentials are configured
-	@if [ -f "gcp-oauth.keys.json" ]; then \
-		echo "✓ OAuth credentials found: gcp-oauth.keys.json"; \
+	@if [ -f "$(CALENDAR_OAUTH_PATH)" ]; then \
+		echo "✓ OAuth credentials found: $(CALENDAR_OAUTH_PATH)"; \
 	else \
-		echo "✗ OAuth credentials not found. Run 'make setup-oauth' for instructions."; \
+		echo "✗ OAuth credentials not found at $(CALENDAR_OAUTH_PATH)"; \
+		echo "Run 'make setup-oauth' for instructions."; \
 		exit 1; \
 	fi
 
+check-env: ## Check environment configuration
+	@echo "Environment Configuration:"
+	@echo "  HTTP_PORT: $(HTTP_PORT)"
+	@echo "  CALENDAR_OAUTH_PATH: $(CALENDAR_OAUTH_PATH)"
+	@echo "  CALENDAR_CREDENTIALS_PATH: $(CALENDAR_CREDENTIALS_PATH)"
+	@echo ""
+
+create-env: ## Create .env.example file
+	@echo "Creating .env.example file..."
+	@echo "# Google Calendar MCP Server Configuration" > .env.example
+	@echo "# Port for the HTTP server" >> .env.example
+	@echo "HTTP_PORT=8081" >> .env.example
+	@echo "" >> .env.example
+	@echo "# OAuth credentials file path" >> .env.example
+	@echo "CALENDAR_OAUTH_PATH=./gcp-oauth.keys.json" >> .env.example
+	@echo "" >> .env.example
+	@echo "# User credentials storage path" >> .env.example
+	@echo "CALENDAR_CREDENTIALS_PATH=~/.calendar-mcp/credentials.json" >> .env.example
+	@echo "" >> .env.example
+	@echo "# Time zone (optional)" >> .env.example
+	@echo "TZ=America/New_York" >> .env.example
+	@echo "✓ Created .env.example"
+
 health-check: ## Check if server is running
-	@echo "Checking server health..."
-	@curl -f http://localhost:8080/health || (echo "Server is not responding" && exit 1)
+	@echo "Checking server health on port $(HTTP_PORT)..."
+	@curl -f http://localhost:$(HTTP_PORT)/health || (echo "Server is not responding on port $(HTTP_PORT)" && exit 1)
 	@echo "Server is healthy!"
 
+# Environment loading
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 # Combined targets
-setup: deps check-oauth ## Setup development environment
+setup: deps check-oauth check-env ## Setup development environment
 	@echo "Development environment setup complete!"
+
+setup-full: deps create-env setup-oauth check-oauth ## Full setup including OAuth instructions
+	@echo "Full setup complete! Follow OAuth instructions above."
 
 start: check-oauth run ## Check OAuth and start server
 
