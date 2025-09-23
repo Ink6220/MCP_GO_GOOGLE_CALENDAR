@@ -45,30 +45,39 @@ go mod tidy
 ```
 
 3. Set up Google OAuth2 credentials:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing
-   - Enable Google Calendar API
-   - Create OAuth2 credentials (Desktop application)
-   - Download the credentials as `gcp-oauth.keys.json`
+  ## Configuration
 
-## Configuration
+1. **OAuth Setup**
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Enable the Google Calendar API
+   - Create OAuth 2.0 credentials (OAuth client ID)
+   - Note down the Client ID and Client Secret
+   - Add `http://localhost:8080/callback` as an authorized redirect URI in the OAuth consent screen
 
-Place your `gcp-oauth.keys.json` file in:
-- Current directory, or
-- `~/.calendar-mcp/gcp-oauth.keys.json`
+Create a `.env` file with the following variables:
+```env
+# Required
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
 
-Environment variables:
-- `CALENDAR_OAUTH_PATH` - Custom path to OAuth keys file
-- `CALENDAR_CREDENTIALS_PATH` - Custom path to stored credentials
+# Optional (default: http://localhost:8080/callback)
+# REDIRECT_URL=http://your-callback-url
+```
+
+Or set them as environment variables in your system.
 
 ## Usage
 
 ### 1. Authentication
-First, authenticate with Google:
-```bash
-go run main.go -auth
-```
-This will open a browser window for OAuth2 authentication.
+
+   Run the following command to start the server and authenticate with Google:
+
+   ```bash
+   make run
+   ```
+
+   Then open `http://localhost:8080/login` in your browser to start the OAuth flow. After authenticating, you'll be redirected back to the callback URL.
 
 ### 2. Start the Server
 ```bash
@@ -247,4 +256,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For issues and questions:
 - Create an issue on GitHub
 - Check the Google Calendar API documentation
-- Review MCP protocol specifications
+- Review MCP protocol specifications# MCP_GO_GOOGLE_CALENDAR
