@@ -257,3 +257,4 @@ For issues and questions:
 - Create an issue on GitHub
 - Check the Google Calendar API documentation
 - Review MCP protocol specifications# MCP_GO_GOOGLE_CALENDAR
+# MCP_GO_GOOGLE_CALENDAR
