@@ -74,7 +74,7 @@ Or set them as environment variables in your system.
    Run the following command to start the server and authenticate with Google:
 
    ```bash
-   make run
+   go run main.go -auth
    ```
 
    Then open `http://localhost:8080/login` in your browser to start the OAuth flow. After authenticating, you'll be redirected back to the callback URL.
